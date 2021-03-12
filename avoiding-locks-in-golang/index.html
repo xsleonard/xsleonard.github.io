@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.80.0" />
+
+<link rel="icon" href="/images/favicon.ico">
+
+
+<title>Avoiding Locks in Golang – Steve Leonard</title>
+
+
+
+  
+
+
+
+
+<link href="/index.xml" rel="alternate" type="application/rss+xml" title="Steve Leonard" />
+
+<meta property="og:title" content="Avoiding Locks in Golang" />
+<meta property="og:description" content="Golang maps are not safe for concurrent writes.
+Common solutions are to use sync.Mutex, sync.RWMutex, or a mutex implemented with chan. Depending on how your application is structured, we can avoid locking with select.
+Synchronizing map access with select package main import ( &#34;math/rand&#34; &#34;time&#34; ) var m = make(map[int]int) // Writes a random k,v pair to the map func write() { k := rand.Int() m[k] = rand.Int() } // Returns a random value stored in the map func read() int { keys := make([]int, 0, len(m)) for k, _ := range m { keys = append(keys, k) } key := keys[rand." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.xsleonard.com/avoiding-locks-in-golang/" />
+<meta property="article:published_time" content="2014-01-15T00:00:00+00:00" />
+<meta property="article:modified_time" content="2014-01-15T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Avoiding Locks in Golang"/>
+<meta name="twitter:description" content="Golang maps are not safe for concurrent writes.
+Common solutions are to use sync.Mutex, sync.RWMutex, or a mutex implemented with chan. Depending on how your application is structured, we can avoid locking with select.
+Synchronizing map access with select package main import ( &#34;math/rand&#34; &#34;time&#34; ) var m = make(map[int]int) // Writes a random k,v pair to the map func write() { k := rand.Int() m[k] = rand.Int() } // Returns a random value stored in the map func read() int { keys := make([]int, 0, len(m)) for k, _ := range m { keys = append(keys, k) } key := keys[rand."/>
+
+<meta itemprop="name" content="Avoiding Locks in Golang">
+<meta itemprop="description" content="Golang maps are not safe for concurrent writes.
+Common solutions are to use sync.Mutex, sync.RWMutex, or a mutex implemented with chan. Depending on how your application is structured, we can avoid locking with select.
+Synchronizing map access with select package main import ( &#34;math/rand&#34; &#34;time&#34; ) var m = make(map[int]int) // Writes a random k,v pair to the map func write() { k := rand.Int() m[k] = rand.Int() } // Returns a random value stored in the map func read() int { keys := make([]int, 0, len(m)) for k, _ := range m { keys = append(keys, k) } key := keys[rand.">
+<meta itemprop="datePublished" content="2014-01-15T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2014-01-15T00:00:00+00:00" />
+<meta itemprop="wordCount" content="308">
+
+
+
+<meta itemprop="keywords" content="software,go,golang,concurrency," />
+
+
+<link rel="stylesheet" href="https://www.xsleonard.com/css/main.css" media="all">
+<link rel="stylesheet" href="https://www.xsleonard.com/css/fonts.css">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="https://www.xsleonard.com/" class="nav-logo">
+    <img src="https://www.xsleonard.com/images/portrait.jpg"
+         width="50" 
+         height="50" 
+         alt="Logo">
+  </a>
+  <a href="https://www.xsleonard.com/" class="nav-title">Steve Leonard</a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="/projects/">Projects</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+
+    <h1 class="article-title">Avoiding Locks in Golang</h1>
+    
+    <span class="article-date">15 January 2014</span>
+    
+
+    <div class="article-content">
+      <p><a href="http://golang.org/doc/faq#atomic_maps">Golang maps are not safe for concurrent writes</a>.</p>
+<p>Common solutions are to use <code>sync.Mutex</code>, <code>sync.RWMutex</code>, or a mutex implemented with <code>chan</code>.  Depending on how your application is structured, we can avoid locking with <code>select</code>.</p>
+<h3 id="synchronizing-map-access-with-select">Synchronizing map access with select</h3>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6ab825;font-weight:bold">package</span> main
+
+<span style="color:#6ab825;font-weight:bold">import</span> (
+    <span style="color:#ed9d13">&#34;math/rand&#34;</span>
+    <span style="color:#ed9d13">&#34;time&#34;</span>
+)
+
+<span style="color:#6ab825;font-weight:bold">var</span> m = <span style="color:#24909d">make</span>(<span style="color:#6ab825;font-weight:bold">map</span>[<span style="color:#6ab825;font-weight:bold">int</span>]<span style="color:#6ab825;font-weight:bold">int</span>)
+
+<span style="color:#999;font-style:italic">// Writes a random k,v pair to the map
+</span><span style="color:#999;font-style:italic"></span><span style="color:#6ab825;font-weight:bold">func</span> <span style="color:#447fcf">write</span>() {
+    k := rand.<span style="color:#447fcf">Int</span>()
+    m[k] = rand.<span style="color:#447fcf">Int</span>()
+}
+
+<span style="color:#999;font-style:italic">// Returns a random value stored in the map
+</span><span style="color:#999;font-style:italic"></span><span style="color:#6ab825;font-weight:bold">func</span> <span style="color:#447fcf">read</span>() <span style="color:#6ab825;font-weight:bold">int</span> {
+    keys := <span style="color:#24909d">make</span>([]<span style="color:#6ab825;font-weight:bold">int</span>, <span style="color:#3677a9">0</span>, <span style="color:#24909d">len</span>(m))
+    <span style="color:#6ab825;font-weight:bold">for</span> k, _ := <span style="color:#6ab825;font-weight:bold">range</span> m {
+        keys = <span style="color:#24909d">append</span>(keys, k)
+    }
+    key := keys[rand.<span style="color:#447fcf">Int</span>()%<span style="color:#24909d">len</span>(keys)]
+    <span style="color:#6ab825;font-weight:bold">return</span> m[key]
+}
+
+<span style="color:#6ab825;font-weight:bold">func</span> <span style="color:#447fcf">main</span>() {
+    m[<span style="color:#3677a9">0</span>] = <span style="color:#3677a9">0</span> <span style="color:#999;font-style:italic">// avoids 0 len map
+</span><span style="color:#999;font-style:italic"></span>    quit := time.<span style="color:#447fcf">After</span>(time.Second)
+    r := time.<span style="color:#447fcf">Tick</span>(time.Millisecond)
+    w := time.<span style="color:#447fcf">Tick</span>(time.Millisecond * <span style="color:#3677a9">2</span>)
+loop:
+    <span style="color:#6ab825;font-weight:bold">for</span> {
+        <span style="color:#6ab825;font-weight:bold">select</span> {
+        <span style="color:#6ab825;font-weight:bold">case</span> &lt;-r:
+            <span style="color:#447fcf">read</span>()
+        <span style="color:#6ab825;font-weight:bold">case</span> &lt;-w:
+            <span style="color:#447fcf">write</span>()
+        <span style="color:#6ab825;font-weight:bold">case</span> &lt;-quit:
+            <span style="color:#6ab825;font-weight:bold">break</span> loop
+        }
+    }
+}
+</code></pre></div><p>In this example, if <code>m</code> were automatically safe for concurrent RW, we would still need manual locking for the body of <code>read()</code> due to the <code>len(m)</code> call.</p>
+<p>This method is unsuitable if the functions called in any of the <code>case:</code> take significant execution time relative to how often a channel in the <code>select</code> has data.  Channel queues would fill up and timers would be delayed or skipped.</p>
+<hr>
+<h2 id="benchmarking">Benchmarking</h2>
+<p>I&rsquo;ve created a repo for <a href="https://github.com/xsleonard/select-vs-mutex">comparing the performance of using select versus sync.Mutex</a>.</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">git clone https://github.com/xsleonard/select-vs-mutex.git
+<span style="color:#24909d">cd</span> <span style="color:#6ab825;font-weight:bold">select</span>-vs-mutex/
+go <span style="color:#24909d">test</span> -bench=With
+</code></pre></div><!-- raw HTML omitted -->
+<p>The <code>100us</code> suffix is how often the read ticker fires.  The write ticker fires twice as often as the read ticker.</p>
+<p>The locking method is significantly faster with a high tick rate, but performance converges with a 1ms tick rate.  The relative poor performance at 10us may be due our <code>write()</code> or <code>read()</code> methods taking longer than the tick rate, or limitations in the go runtime handling blocking <code>select</code> with such a short interval.</p>
+
+    </div>
+
+    <ul class="article-taxonomy">
+      
+
+      
+      <li>
+        <i class="fa fa-tags"></i><a href="/tags/software">software</a><a href="/tags/go">go</a><a href="/tags/golang">golang</a><a href="/tags/concurrency">concurrency</a>
+      </li>
+      
+  </article>
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          
+          <li>
+            <a href="mailto:xsleonard@gmail.com"><i class="fa fa-email"></i> Email</a>
+          </li>
+          
+          
+          <li>
+            <a href="https://github.com/xsleonard"><i class="fa fa-github"></i> GitHub</a>
+          </li>
+          
+          
+          
+          <li>
+            <a href="https://keybase.io/sleonard"><i class="fa fa-keybase"></i> Keybase</a>
+          </li>
+          
+          
+          
+          
+        </ul>
+      </footer>
+
+    </div>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-148611486-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+  </body>
+</html>
+

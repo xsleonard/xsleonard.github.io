@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>libcurl on Steve Leonard</title>
+    <link>https://www.xsleonard.com/tags/libcurl/</link>
+    <description>Recent content in libcurl on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 14 Jan 2014 00:00:00 +0000</lastBuildDate><atom:link href="https://www.xsleonard.com/tags/libcurl/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Distributing libcurl with SSL</title>
+      <link>https://www.xsleonard.com/distributing-libcurl-with-ssl/</link>
+      <pubDate>Tue, 14 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/distributing-libcurl-with-ssl/</guid>
+      <description>Introduction This guide is intended for someone that needs to make https requests from a closed-source C++ application to a limited set of hosts/sites. It only covers distributing for Linux; Windows and OS X will be in a future update.
+In developing Gnomescroll, I needed a way to authenticate users. It is a multiplayer-only game, so user accounts are necessary to save progress. The original authentication system was developed in Fall 2012.</description>
+    </item>
+    
+  </channel>
+</rss>

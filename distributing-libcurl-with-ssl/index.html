@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.80.0" />
+
+<link rel="icon" href="/images/favicon.ico">
+
+
+<title>Distributing libcurl with SSL – Steve Leonard</title>
+
+
+
+  
+
+
+
+
+<link href="/index.xml" rel="alternate" type="application/rss+xml" title="Steve Leonard" />
+
+<meta property="og:title" content="Distributing libcurl with SSL" />
+<meta property="og:description" content="Introduction This guide is intended for someone that needs to make https requests from a closed-source C&#43;&#43; application to a limited set of hosts/sites. It only covers distributing for Linux; Windows and OS X will be in a future update.
+In developing Gnomescroll, I needed a way to authenticate users. It is a multiplayer-only game, so user accounts are necessary to save progress. The original authentication system was developed in Fall 2012." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.xsleonard.com/distributing-libcurl-with-ssl/" />
+<meta property="article:published_time" content="2014-01-14T00:00:00+00:00" />
+<meta property="article:modified_time" content="2014-01-14T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Distributing libcurl with SSL"/>
+<meta name="twitter:description" content="Introduction This guide is intended for someone that needs to make https requests from a closed-source C&#43;&#43; application to a limited set of hosts/sites. It only covers distributing for Linux; Windows and OS X will be in a future update.
+In developing Gnomescroll, I needed a way to authenticate users. It is a multiplayer-only game, so user accounts are necessary to save progress. The original authentication system was developed in Fall 2012."/>
+
+<meta itemprop="name" content="Distributing libcurl with SSL">
+<meta itemprop="description" content="Introduction This guide is intended for someone that needs to make https requests from a closed-source C&#43;&#43; application to a limited set of hosts/sites. It only covers distributing for Linux; Windows and OS X will be in a future update.
+In developing Gnomescroll, I needed a way to authenticate users. It is a multiplayer-only game, so user accounts are necessary to save progress. The original authentication system was developed in Fall 2012.">
+<meta itemprop="datePublished" content="2014-01-14T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2014-01-14T00:00:00+00:00" />
+<meta itemprop="wordCount" content="1057">
+
+
+
+<meta itemprop="keywords" content="software,c,c&#43;&#43;,libcurl,SSL,gnutls," />
+
+
+<link rel="stylesheet" href="https://www.xsleonard.com/css/main.css" media="all">
+<link rel="stylesheet" href="https://www.xsleonard.com/css/fonts.css">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="https://www.xsleonard.com/" class="nav-logo">
+    <img src="https://www.xsleonard.com/images/portrait.jpg"
+         width="50" 
+         height="50" 
+         alt="Logo">
+  </a>
+  <a href="https://www.xsleonard.com/" class="nav-title">Steve Leonard</a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="/projects/">Projects</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+
+    <h1 class="article-title">Distributing libcurl with SSL</h1>
+    
+    <span class="article-date">14 January 2014</span>
+    
+
+    <div class="article-content">
+      <h2 id="introduction">Introduction</h2>
+<p>This guide is intended for someone that needs to make https requests
+from a closed-source C++ application to a limited set of hosts/sites. It
+only covers distributing for Linux; Windows and OS X will be in a future
+update.</p>
+<p>In developing <a href="https://gnomescroll.com">Gnomescroll</a>, I needed a way to
+authenticate users. It is a multiplayer-only game, so user accounts are
+necessary to save progress. The original authentication system was
+developed in Fall 2012. It relies on an https auth server (written in
+Flask) and a shared-secret token based system for authenticating clients
+with game servers.</p>
+<hr>
+<h2 id="instructions">Instructions</h2>
+<h3 id="libcurl-source">Libcurl source</h3>
+<p><a href="https://github.com/bagder/curl">Download the libcurl source</a></p>
+<h3 id="compile-libcurl">Compile libcurl</h3>
+<p>Libcurl uses both cmake and autoconf. We are going to use autoconf. The
+<a href="http://curl.haxx.se/docs/install.html">libcurl compilation guide</a> does
+not mention this.</p>
+<p>We are going to compile it as a shared library only, use GnuTLS for SSL,
+and disable everything else except cookies. We are also going to bump
+the library version to avoid a &ldquo;no version information available&rdquo; error
+with ldd.</p>
+<p>GnuTLS is LGPL, and everything we need it to link to is LGPL, so it is
+supposedly ok for dynamic linking from a proprietary application (don&rsquo;t
+take my word for it). OpenSSL is another option, but it is BSD 4-clause
+licensed, which is incompatible with your application if it is GPL.</p>
+<p>Libcurl has several other <a href="http://curl.haxx.se/docs/ssl-compared.html">options for SSL
+libraries</a>.</p>
+<p>Note that the various SSL libraries have slight differences in how
+certificates are specified and located. I will only be covering
+certificates with GnuTLS.</p>
+<h3 id="fetching-the-source-and-generating-configure">Fetching the source and generating ./configure:</h3>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">git clone https://github.com/bagder/curl.git
+<span style="color:#24909d">cd</span> curl/
+aclocal; autoheader; automake; autoconf
+</code></pre></div><h3 id="configuring-for-gnutls">Configuring for GnuTLS:</h3>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">./configure --without-libidn --without-winidn --without-librtmp <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--without-libssh2 --without-libmetalink --without-ssl --with-gnutls <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-ipv6 --disable-gopher --disable-smtp --disable-imap <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-pop3 --disable-tftp --disable-telnet --disable-dict <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-rtsp --disable-ldaps  --disable-ldap  --disable-file <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-ftp --disable-static --disable-libcurl-option <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-threaded-resolver --enable-versioned-symbols <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--enable-soname-bump --enable-cookies
+</code></pre></div><h3 id="configuring-for-openssl">Configuring for OpenSSL:</h3>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">./configure --without-libidn --without-winidn --without-librtmp <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--without-libssh2 --without-libmetalink --with-ssl --disable-ipv6 <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-gopher --disable-smtp --disable-imap --disable-pop3  <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-tftp --disable-telnet --disable-dict --disable-rtsp  <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-ldaps  --disable-ldap  --disable-file --disable-ftp <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-static --disable-libcurl-option --enable-cookies <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--disable-threaded-resolver --enable-versioned-symbols <span style="color:#ed9d13">\
+</span><span style="color:#ed9d13"></span>--enable-soname-bump
+</code></pre></div><h3 id="configuring-without-ssl">Configuring without SSL</h3>
+<p>If you don&rsquo;t want SSL, replace any instances of <code>--with-ssl</code>,
+<code>--with-gnutls</code>, and any other <code>--with-&lt;ssl_lib&gt;</code> lines you may have
+added with <code>--without-ssl</code>.</p>
+<h3 id="other-configuration-options">Other configuration options</h3>
+<p><code>./configure --help</code> will show other available options if these
+instructions are not exactly what you need.</p>
+<h3 id="cross-compiling-for-32-bit">Cross compiling for 32-bit:</h3>
+<p>If you need to build 32-bit libcurl from a 64-bit system, add
+<code>--host=i386-linux-gnu CFLAGS=-m32</code> to the configuration options.
+i386-linux-gnu is the host name for 32-bit on ubuntu/mint multilib; you
+may need to do <code>--host=i686-pc-linux-gnu</code> or similar on other systems.</p>
+<h3 id="compiling">Compiling:</h3>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">make
+</code></pre></div><h3 id="install-for-your-project">Install for your project</h3>
+<p>We are not going to <code>make install</code>, so it does not clobber the libcurl
+installed by your system. However, if you provided your own
+non-conflicting &ndash;prefix to the ./configure script, it is not a problem.
+Here, we copy the libs into the lib/ subfolder of our project.</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">cp -P ./lib/.libs/libcurl.so* /path/to/project/lib/
+</code></pre></div><p>We also need to copy the headers, because libcurl generates header files
+per-compilation, as opposed to having a universal header file like every
+other package you&rsquo;ve encountered:</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">mkdir -p /path/to/project/lib/include/curl
+cp ./include/curl/*.h /path/to/project/lib/include/curl/
+</code></pre></div><p>You don&rsquo;t have to put the headers in that path, but don&rsquo;t let them
+clobber your system&rsquo;s headers with a rogue <code>make install</code>. This is
+especially important if you are cross-compiling to 32-bit, because the
+headers generated during 64-bit and 32-bit compilation are incompatible.
+If you are cross-compiling, make sure to have a different lib/ and
+include/ path for each arch in your project.</p>
+<h3 id="integrate-with-your-build-system">Integrate with your build system</h3>
+<p>Update your build system to use the project- or arch-specific include
+and link paths for libcurl (e.g. <code>-I./lib/include32 -L./lib/lin32</code>).</p>
+<hr>
+<h2 id="distributing-your-ssl-keys">Distributing your SSL keys</h2>
+<p>You may not wish to rely on the user to have the correct certs installed
+on their system. If the https sites you need to navigate to are limited
+and known ahead of time, you can collect and include them with your
+application.</p>
+<h3 id="get-the-public-keys-for-your-sites">Get the public keys for your site(s)</h3>
+<p>You will need to download the public keys for all of your sites, and
+every key in the chain. To retrieve most of the chain, optionally do:</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gnutls-cli --print-cert example.com &lt; /dev/null &gt; example.com.pem
+</code></pre></div><p>In my case, this retrieves all the keys in the chain except for the root
+key. I have no idea why so you may experience different issues with your
+sites. If you have problems validating your certs later, you can get
+them all manually.</p>
+<p><code>gnutls-cli</code> is provided by the package <code>gnutls-bin</code> in ubuntu/mint.</p>
+<p>To get the final root key, or all of your keys if you skipped
+<code>gnutls-cli</code>, export them manually from the browser. With Chromium, the
+steps are:</p>
+<ol>
+<li>Navigate to <a href="https://example.com">https://example.com</a></li>
+<li>Click the lock icon next to the url in the omnibar.</li>
+<li>Click &lsquo;Connection&rsquo; tab</li>
+<li>Click &lsquo;Certificate Information&rsquo; link</li>
+<li>Click &lsquo;Details&rsquo; tab</li>
+<li>Click the root authority (the top one in the hierarchy box, &ldquo;Builtin
+Object Token&rdquo;)</li>
+<li>Click &lsquo;Export&rsquo;, save to cert1.pem</li>
+<li>Repeat steps 6 and 7 for each level of the hierarchy, if you did not
+get the certs with gnutls-cli, or if you have problems with those
+certs.</li>
+</ol>
+<h3 id="combine-the-public-keys">Combine the public keys</h3>
+<p>Combine all the keys you fetched into one .pem file.</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">cat cert*.pem &gt; example.com.pem
+rm cert*.pem
+</code></pre></div><p>Copy them into your project&rsquo;s data or assets folder:</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">mkdir -p /path/to/project/assets/certs/
+mv example.com.pem /path/to/project/assets/certs/
+</code></pre></div><p>This method is only known to work with GnuTLS; OpenSSL handles certs
+slightly differently. If you are using OpenSSL, you may need to do
+<code>c_rehash /path/to/project/assets/certs/</code> after you copy the .pem file
+in.</p>
+<hr>
+<h2 id="making-the-ssl-request-from-your-application">Making the SSL request from your application</h2>
+<p><a href="https://gist.github.com/xsleonard/6046486">Example C code for making an SSL request with the certs you
+created</a></p>
+<p>That example includes the cookie handling example from the libcurl
+website, because you&rsquo;ll likely need it for your authentication system.
+Instructions for compiling it are near the top of the file.</p>
+<p>After compiling it, test it:</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">./curltest https://example.com ./path/to/certs/example.com.pem
+</code></pre></div><p>You should see the html content displayed in the terminal.</p>
+<h2 id="remaining-tasks">Remaining tasks</h2>
+<p>This still isn&rsquo;t ready for full distribution. We have to:</p>
+<ul>
+<li>Include the gnutls library and its dependencies in the lib folder.
+Possibly compile from source to restrict its dependencies.</li>
+<li>Compile libcurl for windows and OS X for a cross-platform release</li>
+</ul>
+<p>Also, to finish the rest of the authentication system, you&rsquo;ll need to
+have:</p>
+<ul>
+<li>A web server to authenticate with</li>
+<li>A way for users to enter credentials into your app</li>
+<li>A system for authenticating with a 3rd party, e.g. your game server</li>
+</ul>
+
+    </div>
+
+    <ul class="article-taxonomy">
+      
+
+      
+      <li>
+        <i class="fa fa-tags"></i><a href="/tags/software">software</a><a href="/tags/c">c</a><a href="/tags/c&#43;&#43;">c&#43;&#43;</a><a href="/tags/libcurl">libcurl</a><a href="/tags/ssl">SSL</a><a href="/tags/gnutls">gnutls</a>
+      </li>
+      
+  </article>
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          
+          <li>
+            <a href="mailto:xsleonard@gmail.com"><i class="fa fa-email"></i> Email</a>
+          </li>
+          
+          
+          <li>
+            <a href="https://github.com/xsleonard"><i class="fa fa-github"></i> GitHub</a>
+          </li>
+          
+          
+          
+          <li>
+            <a href="https://keybase.io/sleonard"><i class="fa fa-keybase"></i> Keybase</a>
+          </li>
+          
+          
+          
+          
+        </ul>
+      </footer>
+
+    </div>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-148611486-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+  </body>
+</html>
+

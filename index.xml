@@ -1,0 +1,140 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Steve Leonard</title>
+    <link>https://www.xsleonard.com/</link>
+    <description>Recent content on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 10 Oct 2020 00:00:00 +0000</lastBuildDate>
+    
+        <atom:link href="https://www.xsleonard.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    
+    <item>
+      <title>Why the AMRAP sets in 531 are important</title>
+      <link>https://www.xsleonard.com/why-the-amrap-sets-in-531-are-important/</link>
+      <pubDate>Sat, 10 Oct 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/why-the-amrap-sets-in-531-are-important/</guid>
+      <description>I&amp;rsquo;ve heard it claimed that the AMRAP sets in the 5/3/1 training program are not required. This is wrong for the original 5/3/1 program, and anyone avoiding the AMRAP sets will make no real progress and eventually stall.
+Its true that AMRAPs are not necessary for many of the variants of &amp;ldquo;531&amp;rdquo; as proposed by Jim Wendler, but these are not Classic 531 - they are a handful of programs that follow the Training Max principle and an 85/90/95% intensity scheme.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Designing a home gym</title>
+      <link>https://www.xsleonard.com/designing-a-home-gym/</link>
+      <pubDate>Sat, 08 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/designing-a-home-gym/</guid>
+      <description>A home gym contains essential equipment for productive workouts. Due to space, this excludes all machines, which aren&amp;rsquo;t necessary for most people anyway. Home gym workouts focus on free-weight (barbells and dumbbells) and bodyweight exercises.
+The basic equipment  Power rack Bench Barbell Plates Dumbbells Accessories Flooring Maintenance Other Equipment  Power Rack Not all power racks have a pull-up bar across the top of the frame, or they may have poorly shaped pegs for pull-up exercises that will constrain your hand positions.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Renewing an expired Apple developer account</title>
+      <link>https://www.xsleonard.com/renewing-an-expired-apple-developer-account/</link>
+      <pubDate>Wed, 15 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/renewing-an-expired-apple-developer-account/</guid>
+      <description>I tried to enroll as an Apple developer and received this error message with no help or guidance from Apple on resolving it:
+ Sorry, you can’t enroll at this time. Your Apple ID is already associated with the Account Holder of a membership.
+ Googling this error message didn&amp;rsquo;t provide any useful information.
+Turned out I had once paid for an Apple developer membership a decade ago and forgot about it.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>An alternative to hugo --cleanDestinationDir for git submodules</title>
+      <link>https://www.xsleonard.com/an-alternative-to-hugo-cleandestinationdir-for-git-submodules/</link>
+      <pubDate>Tue, 07 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/an-alternative-to-hugo-cleandestinationdir-for-git-submodules/</guid>
+      <description>This blog is created with Hugo and published with Github Pages. The setup uses two repositories, following the instructions from the Hugo docs.
+One repo contains the Hugo content and themes files. The other contains the generated site. The former contains the latter as a submodule.
+When a post is renamed or removed between site generations, unwanted files can be left behind in the generated site directory. To eliminate this problem, hugo --cleanDestinationDir will remove any extraneous files and folders from the destination folder, except for folders that begin with .</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Bootstrap the Ansible user from root</title>
+      <link>https://www.xsleonard.com/bootstrap-the-ansible-user-from-root/</link>
+      <pubDate>Mon, 06 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/bootstrap-the-ansible-user-from-root/</guid>
+      <description>When configuring a new server with Ansible, I wanted to create a new user, then switch to that new user for the remainder of the playbook. As with any Ansible playbook, it should be idempotent. The way to do accomplish this was not straightforward, due to the way the Ansible SSH user behaves.
+The playbook layout  There are two roles: maybecreateuser and createuser.
+The maybecreateuser role wraps the createuser with logic to test if the user exists and to handle the variable setup required to swap ansible_user.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Common setup for a public HTTP server in Go</title>
+      <link>https://www.xsleonard.com/common-setup-for-a-public-http-server-in-go/</link>
+      <pubDate>Mon, 28 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/common-setup-for-a-public-http-server-in-go/</guid>
+      <description>These are common initial setups I use for public Go HTTP services.
+ Configure the HTTP server with timeouts Process lifecycle: graceful shutdown CORS unrolled/secure: Security headers, SSL redirect, host whitelisting Gzip Let&amp;rsquo;s Encrypt Testing  Configure the HTTP server with timeouts The default HTTP server in the http package is not suitable for use as a public Go HTTP server because it does not have timeouts configured. Inevitably, this default server will see connection exhaustion running as a public service.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>How to Diet</title>
+      <link>https://www.xsleonard.com/how-to-diet/</link>
+      <pubDate>Fri, 27 Sep 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/how-to-diet/</guid>
+      <description>The rules of dieting are simple and easy to follow once you get an accurate idea of food and your body. This is a general guide to dieting, aimed at inexperienced or struggling dieters.
+Measure your food When I was dieting seriously for the first time, I realized how wrong I was about estimating food. After I weighed some of my meals and made rough calculations of how many calories I was eating each day, it was obvious why I was overweight.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Go coverage for external tests with Cobra</title>
+      <link>https://www.xsleonard.com/go-coverage-for-external-tests-with-cobra/</link>
+      <pubDate>Tue, 24 Sep 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/go-coverage-for-external-tests-with-cobra/</guid>
+      <description>Prerequisite reading: Go coverage with external tests
+Go coverage can be generated by a CLI tool by compiling it as a test binary and passing it the test coverage flags. There&amp;rsquo;s one catch: coverage will not be generated if the program does not exit with status 0, so its not possible to get coverage for tests of failure cases.
+Instructions for generating coverage in this way are described in Go coverage with external tests and won&amp;rsquo;t be repeated here.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Avoiding Locks in Golang</title>
+      <link>https://www.xsleonard.com/avoiding-locks-in-golang/</link>
+      <pubDate>Wed, 15 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/avoiding-locks-in-golang/</guid>
+      <description>Golang maps are not safe for concurrent writes.
+Common solutions are to use sync.Mutex, sync.RWMutex, or a mutex implemented with chan. Depending on how your application is structured, we can avoid locking with select.
+Synchronizing map access with select package main import ( &amp;#34;math/rand&amp;#34; &amp;#34;time&amp;#34; ) var m = make(map[int]int) // Writes a random k,v pair to the map func write() { k := rand.Int() m[k] = rand.Int() } // Returns a random value stored in the map func read() int { keys := make([]int, 0, len(m)) for k, _ := range m { keys = append(keys, k) } key := keys[rand.</description>
+    </item>
+    
+    
+    
+    <item>
+      <title>Distributing libcurl with SSL</title>
+      <link>https://www.xsleonard.com/distributing-libcurl-with-ssl/</link>
+      <pubDate>Tue, 14 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/distributing-libcurl-with-ssl/</guid>
+      <description>Introduction This guide is intended for someone that needs to make https requests from a closed-source C++ application to a limited set of hosts/sites. It only covers distributing for Linux; Windows and OS X will be in a future update.
+In developing Gnomescroll, I needed a way to authenticate users. It is a multiplayer-only game, so user accounts are necessary to save progress. The original authentication system was developed in Fall 2012.</description>
+    </item>
+    
+    
+  </channel>
+</rss>

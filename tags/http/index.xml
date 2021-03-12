@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>http on Steve Leonard</title>
+    <link>https://www.xsleonard.com/tags/http/</link>
+    <description>Recent content in http on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 28 Oct 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://www.xsleonard.com/tags/http/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Common setup for a public HTTP server in Go</title>
+      <link>https://www.xsleonard.com/common-setup-for-a-public-http-server-in-go/</link>
+      <pubDate>Mon, 28 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/common-setup-for-a-public-http-server-in-go/</guid>
+      <description>These are common initial setups I use for public Go HTTP services.
+ Configure the HTTP server with timeouts Process lifecycle: graceful shutdown CORS unrolled/secure: Security headers, SSL redirect, host whitelisting Gzip Let&amp;rsquo;s Encrypt Testing  Configure the HTTP server with timeouts The default HTTP server in the http package is not suitable for use as a public Go HTTP server because it does not have timeouts configured. Inevitably, this default server will see connection exhaustion running as a public service.</description>
+    </item>
+    
+  </channel>
+</rss>

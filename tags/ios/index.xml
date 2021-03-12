@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ios on Steve Leonard</title>
+    <link>https://www.xsleonard.com/tags/ios/</link>
+    <description>Recent content in ios on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 15 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://www.xsleonard.com/tags/ios/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Renewing an expired Apple developer account</title>
+      <link>https://www.xsleonard.com/renewing-an-expired-apple-developer-account/</link>
+      <pubDate>Wed, 15 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/renewing-an-expired-apple-developer-account/</guid>
+      <description>I tried to enroll as an Apple developer and received this error message with no help or guidance from Apple on resolving it:
+ Sorry, you can’t enroll at this time. Your Apple ID is already associated with the Account Holder of a membership.
+ Googling this error message didn&amp;rsquo;t provide any useful information.
+Turned out I had once paid for an Apple developer membership a decade ago and forgot about it.</description>
+    </item>
+    
+  </channel>
+</rss>

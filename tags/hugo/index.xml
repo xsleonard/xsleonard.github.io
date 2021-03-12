@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>hugo on Steve Leonard</title>
+    <link>https://www.xsleonard.com/tags/hugo/</link>
+    <description>Recent content in hugo on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 07 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://www.xsleonard.com/tags/hugo/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>An alternative to hugo --cleanDestinationDir for git submodules</title>
+      <link>https://www.xsleonard.com/an-alternative-to-hugo-cleandestinationdir-for-git-submodules/</link>
+      <pubDate>Tue, 07 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/an-alternative-to-hugo-cleandestinationdir-for-git-submodules/</guid>
+      <description>This blog is created with Hugo and published with Github Pages. The setup uses two repositories, following the instructions from the Hugo docs.
+One repo contains the Hugo content and themes files. The other contains the generated site. The former contains the latter as a submodule.
+When a post is renamed or removed between site generations, unwanted files can be left behind in the generated site directory. To eliminate this problem, hugo --cleanDestinationDir will remove any extraneous files and folders from the destination folder, except for folders that begin with .</description>
+    </item>
+    
+  </channel>
+</rss>

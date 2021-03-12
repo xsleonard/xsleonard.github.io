@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>concurrency on Steve Leonard</title>
+    <link>https://www.xsleonard.com/tags/concurrency/</link>
+    <description>Recent content in concurrency on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 15 Jan 2014 00:00:00 +0000</lastBuildDate><atom:link href="https://www.xsleonard.com/tags/concurrency/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Avoiding Locks in Golang</title>
+      <link>https://www.xsleonard.com/avoiding-locks-in-golang/</link>
+      <pubDate>Wed, 15 Jan 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/avoiding-locks-in-golang/</guid>
+      <description>Golang maps are not safe for concurrent writes.
+Common solutions are to use sync.Mutex, sync.RWMutex, or a mutex implemented with chan. Depending on how your application is structured, we can avoid locking with select.
+Synchronizing map access with select package main import ( &amp;#34;math/rand&amp;#34; &amp;#34;time&amp;#34; ) var m = make(map[int]int) // Writes a random k,v pair to the map func write() { k := rand.Int() m[k] = rand.Int() } // Returns a random value stored in the map func read() int { keys := make([]int, 0, len(m)) for k, _ := range m { keys = append(keys, k) } key := keys[rand.</description>
+    </item>
+    
+  </channel>
+</rss>

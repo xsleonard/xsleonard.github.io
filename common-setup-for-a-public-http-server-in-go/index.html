@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.80.0" />
+
+<link rel="icon" href="/images/favicon.ico">
+
+
+<title>Common setup for a public HTTP server in Go – Steve Leonard</title>
+
+
+
+  
+
+
+
+
+<link href="/index.xml" rel="alternate" type="application/rss+xml" title="Steve Leonard" />
+
+<meta property="og:title" content="Common setup for a public HTTP server in Go" />
+<meta property="og:description" content="These are common initial setups I use for public Go HTTP services.
+ Configure the HTTP server with timeouts Process lifecycle: graceful shutdown CORS unrolled/secure: Security headers, SSL redirect, host whitelisting Gzip Let&rsquo;s Encrypt Testing  Configure the HTTP server with timeouts The default HTTP server in the http package is not suitable for use as a public Go HTTP server because it does not have timeouts configured. Inevitably, this default server will see connection exhaustion running as a public service." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.xsleonard.com/common-setup-for-a-public-http-server-in-go/" />
+<meta property="article:published_time" content="2019-10-28T00:00:00+00:00" />
+<meta property="article:modified_time" content="2019-10-28T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Common setup for a public HTTP server in Go"/>
+<meta name="twitter:description" content="These are common initial setups I use for public Go HTTP services.
+ Configure the HTTP server with timeouts Process lifecycle: graceful shutdown CORS unrolled/secure: Security headers, SSL redirect, host whitelisting Gzip Let&rsquo;s Encrypt Testing  Configure the HTTP server with timeouts The default HTTP server in the http package is not suitable for use as a public Go HTTP server because it does not have timeouts configured. Inevitably, this default server will see connection exhaustion running as a public service."/>
+
+<meta itemprop="name" content="Common setup for a public HTTP server in Go">
+<meta itemprop="description" content="These are common initial setups I use for public Go HTTP services.
+ Configure the HTTP server with timeouts Process lifecycle: graceful shutdown CORS unrolled/secure: Security headers, SSL redirect, host whitelisting Gzip Let&rsquo;s Encrypt Testing  Configure the HTTP server with timeouts The default HTTP server in the http package is not suitable for use as a public Go HTTP server because it does not have timeouts configured. Inevitably, this default server will see connection exhaustion running as a public service.">
+<meta itemprop="datePublished" content="2019-10-28T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2019-10-28T00:00:00+00:00" />
+<meta itemprop="wordCount" content="739">
+
+
+
+<meta itemprop="keywords" content="software,go,golang,http," />
+
+
+<link rel="stylesheet" href="https://www.xsleonard.com/css/main.css" media="all">
+<link rel="stylesheet" href="https://www.xsleonard.com/css/fonts.css">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="https://www.xsleonard.com/" class="nav-logo">
+    <img src="https://www.xsleonard.com/images/portrait.jpg"
+         width="50" 
+         height="50" 
+         alt="Logo">
+  </a>
+  <a href="https://www.xsleonard.com/" class="nav-title">Steve Leonard</a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="/projects/">Projects</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+
+    <h1 class="article-title">Common setup for a public HTTP server in Go</h1>
+    
+    <span class="article-date">28 October 2019</span>
+    
+
+    <div class="article-content">
+      <p>These are common initial setups I use for public Go HTTP services.</p>
+<!-- raw HTML omitted -->
+<ul>
+<li><a href="#configure-the-http-server-with-timeouts">Configure the HTTP server with timeouts</a></li>
+<li><a href="#process-lifecycle-graceful-shutdown">Process lifecycle: graceful shutdown</a></li>
+<li><a href="#cors">CORS</a></li>
+<li><a href="#unrolledsecure-security-headers-ssl-redirect-host-whitelisting">unrolled/secure: Security headers, SSL redirect, host whitelisting</a></li>
+<li><a href="#gzip">Gzip</a></li>
+<li><a href="#lets-encrypt">Let&rsquo;s Encrypt</a></li>
+<li><a href="#testing">Testing</a></li>
+</ul>
+<!-- raw HTML omitted -->
+<h2 id="configure-the-http-server-with-timeouts">Configure the HTTP server with timeouts</h2>
+<p>The default HTTP server in the <a href="https://golang.org/pkg/net/http/">http package</a> is not suitable for use as a public Go HTTP server because it does not have timeouts configured. Inevitably, this default server will see connection exhaustion running as a public service.</p>
+<p>The timeout configuration is explained well by this post:
+<a href="https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/">https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/</a></p>
+<p>I configure my default HTTP server with these timeouts, which are somewhat arbitrary. They should be reconsidered depending upon the server&rsquo;s use cases, but are suitable for a typical REST API.</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6ab825;font-weight:bold">const</span> (
+    httpAddr := <span style="color:#ed9d13">&#34;:8080&#34;</span>
+    serverReadTimeout  := time.Second * <span style="color:#3677a9">10</span>
+    serverWriteTimeout := time.Second * <span style="color:#3677a9">60</span>
+    serverIdleTimeout  := time.Second * <span style="color:#3677a9">120</span>
+)
+
+<span style="color:#6ab825;font-weight:bold">func</span> <span style="color:#447fcf">newHTTPServer</span>(handler http.Handler) *http.Server {
+    <span style="color:#6ab825;font-weight:bold">return</span> &amp;http.Server{
+        Addr:         httpAddr,
+        Handler:      handler,
+        ReadTimeout:  serverReadTimeout,
+        WriteTimeout: serverWriteTimeout,
+        IdleTimeout:  serverIdleTimeout,
+    }
+}
+</code></pre></div><h2 id="process-lifecycle-graceful-shutdown">Process lifecycle: graceful shutdown</h2>
+<p>The main process should be setup in a way that allows graceful shutdown
+in the event of an error during startup of any goroutines, or if terminated
+by SIGINT (ctrl+c).</p>
+<p>This allows the server to close open connections and finish existing requests by using the <a href="https://golang.org/pkg/net/http/#Server.Shutdown"><code>http.Server.Shutdown</code></a> method.</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#6ab825;font-weight:bold">func</span> <span style="color:#447fcf">run</span>() <span style="color:#6ab825;font-weight:bold">error</span> {
+    <span style="color:#999;font-style:italic">// Setup HTTP server (using previous example code)
+</span><span style="color:#999;font-style:italic"></span>    handler := api.<span style="color:#447fcf">NewHandler</span>() <span style="color:#999;font-style:italic">// Whatever handler is defined by your app
+</span><span style="color:#999;font-style:italic"></span>    httpServer := <span style="color:#447fcf">newHTTPServer</span>(handler)
+
+    <span style="color:#999;font-style:italic">// Create a WaitGroup to synchronize termination of all goroutines
+</span><span style="color:#999;font-style:italic"></span>    <span style="color:#6ab825;font-weight:bold">var</span> wg sync.WaitGroup
+    <span style="color:#999;font-style:italic">// Create an error channel to handle goroutine errors
+</span><span style="color:#999;font-style:italic"></span>    <span style="color:#999;font-style:italic">// The buffer size should equal the number of goroutines that are run
+</span><span style="color:#999;font-style:italic"></span>    errs := <span style="color:#24909d">make</span>(<span style="color:#6ab825;font-weight:bold">chan</span> <span style="color:#6ab825;font-weight:bold">error</span>, <span style="color:#3677a9">2</span>)
+
+    <span style="color:#999;font-style:italic">// Run the HTTP server
+</span><span style="color:#999;font-style:italic"></span>    wg.<span style="color:#447fcf">Add</span>(<span style="color:#3677a9">1</span>)
+    <span style="color:#6ab825;font-weight:bold">go</span> <span style="color:#6ab825;font-weight:bold">func</span>() {
+        <span style="color:#6ab825;font-weight:bold">defer</span> wg.<span style="color:#447fcf">Done</span>()
+
+        err := httpServer.<span style="color:#447fcf">ListenAndServe</span>()
+        <span style="color:#6ab825;font-weight:bold">if</span> err != http.ErrServerClosed {
+            errs &lt;- err
+        }
+    }()
+
+    <span style="color:#999;font-style:italic">// (Example) Run another app goroutine
+</span><span style="color:#999;font-style:italic"></span>    wg.<span style="color:#447fcf">Add</span>(<span style="color:#3677a9">1</span>)
+    <span style="color:#6ab825;font-weight:bold">go</span> <span style="color:#6ab825;font-weight:bold">func</span>() {
+        <span style="color:#6ab825;font-weight:bold">defer</span> wg.<span style="color:#447fcf">Done</span>()
+        <span style="color:#6ab825;font-weight:bold">if</span> err := app.<span style="color:#447fcf">Run</span>(); err != <span style="color:#6ab825;font-weight:bold">nil</span> {
+            errs &lt;- err
+        }
+    }
+
+    <span style="color:#999;font-style:italic">// Catch ctrl+c and shutdown the server gracefully
+</span><span style="color:#999;font-style:italic"></span>    quit := <span style="color:#24909d">make</span>(<span style="color:#6ab825;font-weight:bold">chan</span> <span style="color:#6ab825;font-weight:bold">struct</span>{})
+    <span style="color:#6ab825;font-weight:bold">go</span> <span style="color:#6ab825;font-weight:bold">func</span>() {
+        c := <span style="color:#24909d">make</span>(<span style="color:#6ab825;font-weight:bold">chan</span> os.Signal, <span style="color:#3677a9">1</span>)
+        signal.<span style="color:#447fcf">Notify</span>(c, syscall.SIGINT)
+        &lt;-c
+        <span style="color:#24909d">close</span>(quit)
+    }()
+
+    <span style="color:#999;font-style:italic">// Wait for ctrl+c or for one of the goroutines to fail
+</span><span style="color:#999;font-style:italic"></span>    <span style="color:#6ab825;font-weight:bold">var</span> err <span style="color:#6ab825;font-weight:bold">error</span>
+    <span style="color:#6ab825;font-weight:bold">select</span> {
+    <span style="color:#6ab825;font-weight:bold">case</span> &lt;-quit:
+    <span style="color:#6ab825;font-weight:bold">case</span> err = &lt;-errs:
+        log.<span style="color:#447fcf">Println</span>(<span style="color:#ed9d13">&#34;Goroutine failed:&#34;</span>, err)
+    }
+
+    <span style="color:#999;font-style:italic">// Shutdown the HTTP server with a timeout
+</span><span style="color:#999;font-style:italic"></span>    <span style="color:#999;font-style:italic">// Note: the HTTP server may not be running if it failed to start
+</span><span style="color:#999;font-style:italic"></span>    serverShutdownTimeout := time.Second * <span style="color:#3677a9">5</span>
+    ctx, cancel := context.<span style="color:#447fcf">WithTimeout</span>(ctx, serverShutdownTimeout)
+    <span style="color:#6ab825;font-weight:bold">defer</span> <span style="color:#447fcf">cancel</span>()
+    <span style="color:#6ab825;font-weight:bold">if</span> err := httpServer.<span style="color:#447fcf">Shutdown</span>(ctx); err != <span style="color:#6ab825;font-weight:bold">nil</span> {
+        log.<span style="color:#447fcf">Println</span>(<span style="color:#ed9d13">&#34;shutdownServer error:&#34;</span>, err)
+    }
+
+    log.<span style="color:#447fcf">Println</span>(<span style="color:#ed9d13">&#34;Waiting for goroutines to finish&#34;</span>)
+    wg.<span style="color:#447fcf">Wait</span>()
+
+    <span style="color:#6ab825;font-weight:bold">return</span> err
+}
+</code></pre></div><h2 id="cors">CORS</h2>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">CORS</a> configuration is not needed if the application does not need to support cross-origin requests. By default, browsers block any cross-origin requests without any further configuration from the server. Only use CORS to allow other domains (origins) to make requests to your service. This includes subdomains, so this is commonly needed.</p>
+<p>I use <a href="https://github.com/rs/cors">rs/cors</a> for CORS configuration. Configuration is straightforward from their documentation: <a href="https://github.com/rs/cors#parameters">https://github.com/rs/cors#parameters</a></p>
+<h2 id="unrolledsecure-security-headers-ssl-redirect-host-whitelisting">unrolled/secure: Security headers, SSL redirect, host whitelisting</h2>
+<p>I use <a href="https://github.com/unrolled/secure">unrolled/secure</a> to add various security headers such as <code>Content-Security-Policy</code>, to perform automatic SSL redirects or to restrict requests to certain hostnames.</p>
+<h2 id="gzip">Gzip</h2>
+<p>If the HTTP service is not deployed behind something like nginx, I use the <a href="https://github.com/NYTimes/gziphandler">nytimes/gziphandler</a> middleware for gzipping HTTP requests. Otherwise, this can be handled by nginx or a similar tool in a reverse proxy setup.</p>
+<h2 id="lets-encrypt">Let&rsquo;s Encrypt</h2>
+<p>Free SSL certs with automatic renewal can be obtained from <a href="https://letsencrypt.org">Let&rsquo;s Encrypt</a> using <a href="https://godoc.org/golang.org/x/crypto/acme/autocert">x/crypto/acme/autocert</a>. See the <a href="https://godoc.org/golang.org/x/crypto/acme/autocert#ex-Manager">certificate manager example</a> for configuring an <code>http.Server</code> with autocert.</p>
+<h2 id="testing">Testing</h2>
+<p>HTTP handler tests follow this pattern, using <a href="https://github.com/golang/go/wiki/TableDrivenTests">table-driven tests</a>:</p>
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
+<span style="color:#6ab825;font-weight:bold">import</span> (
+    <span style="color:#ed9d13">&#34;net/http&#34;</span>
+    <span style="color:#ed9d13">&#34;net/http/httptest&#34;</span>
+    <span style="color:#ed9d13">&#34;testing&#34;</span>
+
+    <span style="color:#ed9d13">&#34;github.com/stretchr/testify/require&#34;</span>
+)
+
+<span style="color:#6ab825;font-weight:bold">func</span> <span style="color:#447fcf">TestHandler</span>(t *testing.T) {
+    <span style="color:#6ab825;font-weight:bold">case</span> := []<span style="color:#6ab825;font-weight:bold">struct</span>{
+        name <span style="color:#6ab825;font-weight:bold">string</span>
+        method <span style="color:#6ab825;font-weight:bold">string</span>
+        status <span style="color:#6ab825;font-weight:bold">int</span>
+        reqBody <span style="color:#6ab825;font-weight:bold">string</span>
+        resp <span style="color:#6ab825;font-weight:bold">string</span>
+    }{
+        {
+            name: <span style="color:#ed9d13">&#34;OK&#34;</span>,
+            method: http.MethodGet,
+            status: http.StatusOK,
+            reqBody: <span style="color:#ed9d13">`{&#34;id&#34;:123}`</span>,
+            resp: <span style="color:#ed9d13">`{&#34;id&#34;:123,&#34;name&#34;:&#34;foo&#34;}\n`</span>,
+        },
+        {
+            name: <span style="color:#ed9d13">&#34;Method Not Allowed&#34;</span>,
+            method: http.MethodPost,
+            status: http.StatusMethodNotAllowed,
+            reqBody: <span style="color:#ed9d13">`{&#34;id&#34;:123}`</span>,
+            resp: <span style="color:#ed9d13">&#34;405 - Method Not Allowed\n&#34;</span>,
+        },
+    }
+
+    <span style="color:#6ab825;font-weight:bold">for</span> _, tc := <span style="color:#6ab825;font-weight:bold">range</span> cases {
+        t.<span style="color:#447fcf">Run</span>(tc.name, <span style="color:#6ab825;font-weight:bold">func</span>(t *testing.T) {
+            <span style="color:#999;font-style:italic">// Setup the http request
+</span><span style="color:#999;font-style:italic"></span>            endpoint := <span style="color:#ed9d13">&#34;/api/v1/thing&#34;</span>
+            req, err := http.<span style="color:#447fcf">NewRequest</span>(tc.method, endpoint, strings.<span style="color:#447fcf">NewReader</span>(tc.reqBody))
+            require.<span style="color:#447fcf">NoError</span>(t, err)
+            req.Header.<span style="color:#447fcf">Set</span>(<span style="color:#ed9d13">&#34;Content-Type&#34;</span>, <span style="color:#ed9d13">&#34;application/json&#34;</span>)
+
+            <span style="color:#999;font-style:italic">// Pass the request through the HTTP server handler,
+</span><span style="color:#999;font-style:italic"></span>            <span style="color:#999;font-style:italic">// and record the result with httptest.ResponseRecorder
+</span><span style="color:#999;font-style:italic"></span>            rr := httptest.<span style="color:#447fcf">NewRecorder</span>()
+            handler := <span style="color:#447fcf">newHandler</span>()
+            handler.<span style="color:#447fcf">ServeHTTP</span>(rr, req)
+
+            <span style="color:#999;font-style:italic">// Check the response status code and body
+</span><span style="color:#999;font-style:italic"></span>            resp := w.<span style="color:#447fcf">Result</span>()
+            <span style="color:#6ab825;font-weight:bold">defer</span> resp.Body.<span style="color:#447fcf">Close</span>()
+
+            require.<span style="color:#447fcf">Equal</span>(t, tc.status, resp.StatusCode)
+
+            body, err := ioutil.<span style="color:#447fcf">ReadAll</span>(resp.Body)
+            require.<span style="color:#447fcf">NoError</span>(t, err)
+
+            require.<span style="color:#447fcf">Equal</span>(t, tc.resp, body)
+        })
+    }
+}
+</code></pre></div>
+    </div>
+
+    <ul class="article-taxonomy">
+      
+
+      
+      <li>
+        <i class="fa fa-tags"></i><a href="/tags/software">software</a><a href="/tags/go">go</a><a href="/tags/golang">golang</a><a href="/tags/http">http</a>
+      </li>
+      
+  </article>
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          
+          <li>
+            <a href="mailto:xsleonard@gmail.com"><i class="fa fa-email"></i> Email</a>
+          </li>
+          
+          
+          <li>
+            <a href="https://github.com/xsleonard"><i class="fa fa-github"></i> GitHub</a>
+          </li>
+          
+          
+          
+          <li>
+            <a href="https://keybase.io/sleonard"><i class="fa fa-keybase"></i> Keybase</a>
+          </li>
+          
+          
+          
+          
+        </ul>
+      </footer>
+
+    </div>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-148611486-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+  </body>
+</html>
+

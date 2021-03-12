@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.80.0" />
+
+<link rel="icon" href="/images/favicon.ico">
+
+
+<title>Bootstrap the Ansible user from root – Steve Leonard</title>
+
+
+
+  
+
+
+
+
+<link href="/index.xml" rel="alternate" type="application/rss+xml" title="Steve Leonard" />
+
+<meta property="og:title" content="Bootstrap the Ansible user from root" />
+<meta property="og:description" content="When configuring a new server with Ansible, I wanted to create a new user, then switch to that new user for the remainder of the playbook. As with any Ansible playbook, it should be idempotent. The way to do accomplish this was not straightforward, due to the way the Ansible SSH user behaves.
+The playbook layout  There are two roles: maybecreateuser and createuser.
+The maybecreateuser role wraps the createuser with logic to test if the user exists and to handle the variable setup required to swap ansible_user." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.xsleonard.com/bootstrap-the-ansible-user-from-root/" />
+<meta property="article:published_time" content="2020-01-06T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-01-06T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Bootstrap the Ansible user from root"/>
+<meta name="twitter:description" content="When configuring a new server with Ansible, I wanted to create a new user, then switch to that new user for the remainder of the playbook. As with any Ansible playbook, it should be idempotent. The way to do accomplish this was not straightforward, due to the way the Ansible SSH user behaves.
+The playbook layout  There are two roles: maybecreateuser and createuser.
+The maybecreateuser role wraps the createuser with logic to test if the user exists and to handle the variable setup required to swap ansible_user."/>
+
+<meta itemprop="name" content="Bootstrap the Ansible user from root">
+<meta itemprop="description" content="When configuring a new server with Ansible, I wanted to create a new user, then switch to that new user for the remainder of the playbook. As with any Ansible playbook, it should be idempotent. The way to do accomplish this was not straightforward, due to the way the Ansible SSH user behaves.
+The playbook layout  There are two roles: maybecreateuser and createuser.
+The maybecreateuser role wraps the createuser with logic to test if the user exists and to handle the variable setup required to swap ansible_user.">
+<meta itemprop="datePublished" content="2020-01-06T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2020-01-06T00:00:00+00:00" />
+<meta itemprop="wordCount" content="303">
+
+
+
+<meta itemprop="keywords" content="ansible," />
+
+
+<link rel="stylesheet" href="https://www.xsleonard.com/css/main.css" media="all">
+<link rel="stylesheet" href="https://www.xsleonard.com/css/fonts.css">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="https://www.xsleonard.com/" class="nav-logo">
+    <img src="https://www.xsleonard.com/images/portrait.jpg"
+         width="50" 
+         height="50" 
+         alt="Logo">
+  </a>
+  <a href="https://www.xsleonard.com/" class="nav-title">Steve Leonard</a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="/projects/">Projects</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+
+    <h1 class="article-title">Bootstrap the Ansible user from root</h1>
+    
+    <span class="article-date">6 January 2020</span>
+    
+
+    <div class="article-content">
+      <p>When configuring a new server with Ansible, I wanted to create a new user, then switch to that new user for the remainder of the playbook. As with any Ansible playbook, it should be idempotent. The way to do accomplish this was not straightforward, due to the way the Ansible SSH user behaves.</p>
+<h3 id="the-playbook-layout">The playbook layout</h3>
+<script type="application/javascript" src="https://gist.github.com/xsleonard/b1c1cd5e46cbd3fb13ea559eec6068f7.js?file=00-project-layout.txt"></script>
+
+<p>There are two roles: <code>maybecreateuser</code> and <code>createuser</code>.</p>
+<p>The <code>maybecreateuser</code> role wraps the <code>createuser</code> with logic to test if the user exists and to handle the variable setup required to swap <code>ansible_user</code>. The <code>createuser</code> role contains the user creation tasks.</p>
+<h3 id="testing-if-the-user-exists">Testing if the user exists</h3>
+<script type="application/javascript" src="https://gist.github.com/xsleonard/b1c1cd5e46cbd3fb13ea559eec6068f7.js?file=01-maybecreateuser-main.yml"></script>
+
+<p>Key points:</p>
+<ul>
+<li>Stash the <code>ansible_user</code> into another variable, before swapping in the value of <code>initial_user</code>. <code>initial_user</code> is a variable defined by this role and should be the name of the initial root user on the server.</li>
+<li>Test if the user already exists by trying to SSH explicitly</li>
+</ul>
+<h3 id="creating-the-user">Creating the user</h3>
+<script type="application/javascript" src="https://gist.github.com/xsleonard/b1c1cd5e46cbd3fb13ea559eec6068f7.js?file=02-createuser-main.yml"></script>
+
+<ul>
+<li>Create a user with no password set, to avoid dealing with password handling</li>
+<li>Copy the <code>~/.ssh/authorized_keys</code> file from <code>initial_user</code>, in order to SSH in as this new user. This assumes your <code>initial_user</code> has an <code>authorized_keys</code> file already (this is true on DigitalOcean if you provide your pubkey before creating the server).</li>
+<li>Give the user sudo rights without a password</li>
+</ul>
+<p>None of these are hard requirements. You may want your user to have a password and not give it <code>nopasswd</code> sudo. You may want to use a different SSH key.</p>
+<h3 id="using-it-in-a-playbook">Using it in a playbook</h3>
+<script type="application/javascript" src="https://gist.github.com/xsleonard/b1c1cd5e46cbd3fb13ea559eec6068f7.js?file=04-site.yml"></script>
+
+<p>When using the <code>maybecreateuser</code> role, <code>gather_facts: no</code> must be set in the playbook. Otherwise, ansible will try to do <code>gather_facts</code> which requires an SSH connection, but the <code>ansible_user</code> might not exist yet.</p>
+<h3 id="configuring-inventory">Configuring inventory</h3>
+<script type="application/javascript" src="https://gist.github.com/xsleonard/b1c1cd5e46cbd3fb13ea559eec6068f7.js?file=05-inventory"></script>
+
+<p>Pass the <code>initial_user</code> if necessary to configure hosts whose initial user is not <code>root</code>.</p>
+<p>Set the <code>ansible_user</code> to whatever you want, or don&rsquo;t set it.</p>
+
+    </div>
+
+    <ul class="article-taxonomy">
+      
+
+      
+      <li>
+        <i class="fa fa-tags"></i><a href="/tags/ansible">ansible</a>
+      </li>
+      
+  </article>
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          
+          <li>
+            <a href="mailto:xsleonard@gmail.com"><i class="fa fa-email"></i> Email</a>
+          </li>
+          
+          
+          <li>
+            <a href="https://github.com/xsleonard"><i class="fa fa-github"></i> GitHub</a>
+          </li>
+          
+          
+          
+          <li>
+            <a href="https://keybase.io/sleonard"><i class="fa fa-keybase"></i> Keybase</a>
+          </li>
+          
+          
+          
+          
+        </ul>
+      </footer>
+
+    </div>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-148611486-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+  </body>
+</html>
+

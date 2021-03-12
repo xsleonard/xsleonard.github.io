@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ansible on Steve Leonard</title>
+    <link>https://www.xsleonard.com/tags/ansible/</link>
+    <description>Recent content in ansible on Steve Leonard</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 06 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://www.xsleonard.com/tags/ansible/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Bootstrap the Ansible user from root</title>
+      <link>https://www.xsleonard.com/bootstrap-the-ansible-user-from-root/</link>
+      <pubDate>Mon, 06 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.xsleonard.com/bootstrap-the-ansible-user-from-root/</guid>
+      <description>When configuring a new server with Ansible, I wanted to create a new user, then switch to that new user for the remainder of the playbook. As with any Ansible playbook, it should be idempotent. The way to do accomplish this was not straightforward, due to the way the Ansible SSH user behaves.
+The playbook layout  There are two roles: maybecreateuser and createuser.
+The maybecreateuser role wraps the createuser with logic to test if the user exists and to handle the variable setup required to swap ansible_user.</description>
+    </item>
+    
+  </channel>
+</rss>

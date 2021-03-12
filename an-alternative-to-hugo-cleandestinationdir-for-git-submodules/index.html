@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.80.0" />
+
+<link rel="icon" href="/images/favicon.ico">
+
+
+<title>An alternative to hugo --cleanDestinationDir for git submodules – Steve Leonard</title>
+
+
+
+  
+
+
+
+
+<link href="/index.xml" rel="alternate" type="application/rss+xml" title="Steve Leonard" />
+
+<meta property="og:title" content="An alternative to hugo --cleanDestinationDir for git submodules" />
+<meta property="og:description" content="This blog is created with Hugo and published with Github Pages. The setup uses two repositories, following the instructions from the Hugo docs.
+One repo contains the Hugo content and themes files. The other contains the generated site. The former contains the latter as a submodule.
+When a post is renamed or removed between site generations, unwanted files can be left behind in the generated site directory. To eliminate this problem, hugo --cleanDestinationDir will remove any extraneous files and folders from the destination folder, except for folders that begin with ." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.xsleonard.com/an-alternative-to-hugo-cleandestinationdir-for-git-submodules/" />
+<meta property="article:published_time" content="2020-01-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-01-07T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="An alternative to hugo --cleanDestinationDir for git submodules"/>
+<meta name="twitter:description" content="This blog is created with Hugo and published with Github Pages. The setup uses two repositories, following the instructions from the Hugo docs.
+One repo contains the Hugo content and themes files. The other contains the generated site. The former contains the latter as a submodule.
+When a post is renamed or removed between site generations, unwanted files can be left behind in the generated site directory. To eliminate this problem, hugo --cleanDestinationDir will remove any extraneous files and folders from the destination folder, except for folders that begin with ."/>
+
+<meta itemprop="name" content="An alternative to hugo --cleanDestinationDir for git submodules">
+<meta itemprop="description" content="This blog is created with Hugo and published with Github Pages. The setup uses two repositories, following the instructions from the Hugo docs.
+One repo contains the Hugo content and themes files. The other contains the generated site. The former contains the latter as a submodule.
+When a post is renamed or removed between site generations, unwanted files can be left behind in the generated site directory. To eliminate this problem, hugo --cleanDestinationDir will remove any extraneous files and folders from the destination folder, except for folders that begin with .">
+<meta itemprop="datePublished" content="2020-01-07T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2020-01-07T00:00:00+00:00" />
+<meta itemprop="wordCount" content="217">
+
+
+
+<meta itemprop="keywords" content="hugo,git," />
+
+
+<link rel="stylesheet" href="https://www.xsleonard.com/css/main.css" media="all">
+<link rel="stylesheet" href="https://www.xsleonard.com/css/fonts.css">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="https://www.xsleonard.com/" class="nav-logo">
+    <img src="https://www.xsleonard.com/images/portrait.jpg"
+         width="50" 
+         height="50" 
+         alt="Logo">
+  </a>
+  <a href="https://www.xsleonard.com/" class="nav-title">Steve Leonard</a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="/projects/">Projects</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+
+    <h1 class="article-title">An alternative to hugo --cleanDestinationDir for git submodules</h1>
+    
+    <span class="article-date">7 January 2020</span>
+    
+
+    <div class="article-content">
+      <p>This blog is created with <a href="https://gohugo.io">Hugo</a> and published with Github Pages. The setup uses two repositories, <a href="https://gohugo.io/hosting-and-deployment/hosting-on-github">following the instructions from the Hugo docs</a>.</p>
+<p>One repo contains the Hugo content and themes files. The other contains the generated site. The former contains the latter as a submodule.</p>
+<p>When a post is renamed or removed between site generations, unwanted files can be left behind in the generated site directory. To eliminate this problem, <code>hugo --cleanDestinationDir</code> will remove any extraneous files and folders from the destination folder, except for <em>folders</em> that begin with <code>.</code> (hidden folders). This behavior was added to avoid removing <code>.git/</code> folders. Unfortunately, git submodules contain a <code>.git</code> <em>file</em>, and will be removed when using <code>--cleanDestinationDir</code> (as well as any other hidden files, like <code>.gitignore</code>).</p>
+<p>There is an <a href="https://github.com/gohugoio/hugo/pull/6261">open (ignored) PR to fix this for the <code>.git</code> file</a>. However, <code>.gitignore</code> would still be removed. To handle this, they&rsquo;d need to add yet another exception for this file or expose yet another configuration parameter to allow the user to define which files to preserve. Both solutions are entering the &ldquo;bloat&rdquo; realm, so we&rsquo;re unlikely to see the change made.</p>
+<p>As a workaround, all hidden files and folders can be ignored by modifying <a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/#put-it-into-a-script">the  <code>deploy.sh</code> bash script that is provided by Hugo in their documentation for Github Pages deployment</a>.</p>
+<script type="application/javascript" src="https://gist.github.com/xsleonard/2b08a9d71374f40b8ab6f1596b7fbfa1.js"></script>
+
+
+    </div>
+
+    <ul class="article-taxonomy">
+      
+
+      
+      <li>
+        <i class="fa fa-tags"></i><a href="/tags/hugo">hugo</a><a href="/tags/git">git</a>
+      </li>
+      
+  </article>
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          
+          <li>
+            <a href="mailto:xsleonard@gmail.com"><i class="fa fa-email"></i> Email</a>
+          </li>
+          
+          
+          <li>
+            <a href="https://github.com/xsleonard"><i class="fa fa-github"></i> GitHub</a>
+          </li>
+          
+          
+          
+          <li>
+            <a href="https://keybase.io/sleonard"><i class="fa fa-keybase"></i> Keybase</a>
+          </li>
+          
+          
+          
+          
+        </ul>
+      </footer>
+
+    </div>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-148611486-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+  </body>
+</html>
+
